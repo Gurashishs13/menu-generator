@@ -20,19 +20,22 @@ function App() {
     });
   };
 
-  const generatePDF = () => {
-    const input = document.getElementById("menu-preview");
-    html2canvas(input, { scale: 2 }).then((canvas) => {
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pageWidth - 20;
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-      pdf.addImage(imgData, "PNG", 10, 10, pdfWidth, pdfHeight);
-      pdf.save("GB-Caterers-Menu.pdf");
-    });
-  };
+const generatePDF = () => {
+  const input = document.getElementById("menu-preview");
+  html2canvas(input, {
+    scale: 3,   // Increase scale for higher resolution
+    useCORS: true,
+    scrollY: -window.scrollY,
+  }).then((canvas) => {
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p", "mm", "a4");
+    const pdfWidth = pdf.internal.pageSize.getWidth() - 20; // margin 10mm each side
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+    pdf.addImage(imgData, "PNG", 10, 10, pdfWidth, pdfHeight);
+    pdf.save("GB-Caterers-Menu.pdf");
+  });
+};
 
   return (
     <div style={{ background: "#f8f6ea", minHeight: "100vh", padding: 40 }}>
