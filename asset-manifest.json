@@ -1,0 +1,19 @@
+{
+  "files": {
+    "main.css": "/Gurashishs13/menu-generator/static/css/main.cb18640e.css",
+    "main.js": "/Gurashishs13/menu-generator/static/js/main.dfd79efe.js",
+    "static/js/977.560a723f.chunk.js": "/Gurashishs13/menu-generator/static/js/977.560a723f.chunk.js",
+    "static/js/455.aa363214.chunk.js": "/Gurashishs13/menu-generator/static/js/455.aa363214.chunk.js",
+    "static/js/453.aaae37a9.chunk.js": "/Gurashishs13/menu-generator/static/js/453.aaae37a9.chunk.js",
+    "index.html": "/Gurashishs13/menu-generator/index.html",
+    "main.cb18640e.css.map": "/Gurashishs13/menu-generator/static/css/main.cb18640e.css.map",
+    "main.dfd79efe.js.map": "/Gurashishs13/menu-generator/static/js/main.dfd79efe.js.map",
+    "977.560a723f.chunk.js.map": "/Gurashishs13/menu-generator/static/js/977.560a723f.chunk.js.map",
+    "455.aa363214.chunk.js.map": "/Gurashishs13/menu-generator/static/js/455.aa363214.chunk.js.map",
+    "453.aaae37a9.chunk.js.map": "/Gurashishs13/menu-generator/static/js/453.aaae37a9.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.cb18640e.css",
+    "static/js/main.dfd79efe.js"
+  ]
+}
