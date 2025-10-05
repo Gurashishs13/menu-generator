@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import jsPDF from "jspdf";
+import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import categories from "./menuData";
 
@@ -19,48 +19,42 @@ function App() {
       };
     });
   };
+const generatePDF = async () => {
+  const input = document.getElementById("menu-preview");
 
-const generatePDF = () => {
-  const input = document.getElementById('menu-preview');
-
-  // Save original styles for reset later
+  // Save styles to revert later
   const originalWidth = input.style.width;
-  const originalFontSize = input.style.fontSize;
-  const originalWordWrap = input.style.wordWrap;
+  input.style.width = "760px";
 
-  // Force desktop styling for PDF generation
-  input.style.width = '760px';
-  input.style.fontSize = '16px';
-  input.style.wordWrap = 'break-word';
+  try {
+    const canvas = await html2canvas(input, { scale: 3, useCORS: true, scrollY: -window.scrollY });
+    const imgData = canvas.toDataURL("image/png");
 
-  html2canvas(input, { scale: 3, useCORS: true, scrollY: -window.scrollY }).then(canvas => {
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
-    const pdfWidth = pdf.internal.pageSize.getWidth() - 20; // 10mm margin each side
+    const pdf = new jsPDF("p", "mm", "a4");
+    const pdfWidth = pdf.internal.pageSize.getWidth() - 20; // margins 10mm each side
+
     const imgProps = pdf.getImageProperties(imgData);
     const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-    pdf.addImage(imgData, 'PNG', 10, 10, pdfWidth, pdfHeight);
+    pdf.addImage(imgData, "PNG", 10, 10, pdfWidth, pdfHeight);
 
-    // Instead of direct pdf.save(), generate blob and trigger manual download for better mobile support
-    pdf.output('bloburl').then(blobUrl => {
-      const link = document.createElement('a');
-      link.href = blobUrl;
-      link.download = 'GB-Caterers-Menu.pdf';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }).catch(() => {
-      // fallback if bloburl not supported:
-      pdf.save('GB-Caterers-Menu.pdf');
-    });
-
-    // Reset styles
+    const blob = pdf.output("blob");
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = "GB-Caterers-Menu.pdf";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(blobUrl);
+  } catch (err) {
+    console.error(err);
+    alert("PDF generation failed. Check console for errors.");
+  } finally {
     input.style.width = originalWidth;
-    input.style.fontSize = originalFontSize;
-    input.style.wordWrap = originalWordWrap;
-  });
+  }
 };
+
 
 
 
