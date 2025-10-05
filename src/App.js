@@ -20,34 +20,43 @@ function App() {
     });
   };
 
+  const generatePDF = async () => {
+    const input = document.getElementById("menu-preview");
 
-const generatePDF = async () => {
-  const input = document.getElementById("menu-preview");
+    // adjust styles for consistent PDF generation
+    const origWidth = input.style.width;
+    input.style.width = "760px";
 
-  // adjust styles for consistent PDF generation
-  const origWidth = input.style.width;
-  input.style.width = "760px";
+    try {
+      const canvas = await html2canvas(input, {
+        scale: 3,
+        useCORS: true,
+        scrollY: -window.scrollY,
+      });
+      const imgData = canvas.toDataURL("image/png");
 
-  try {
-    const canvas = await html2canvas(input, { scale: 3, useCORS: true, scrollY: -window.scrollY });
-    const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth() - 20;
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-    const pdf = new jsPDF("p", "mm", "a4");
-    const pdfWidth = pdf.internal.pageSize.getWidth() - 20;
-    const imgProps = pdf.getImageProperties(imgData);
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      pdf.addImage(imgData, "PNG", 10, 10, pdfWidth, pdfHeight);
 
-    pdf.addImage(imgData, "PNG", 10, 10, pdfWidth, pdfHeight);
+      const datePart = event.date ? event.date.replace(/\s+/g, "_") : "NoDate";
+      const venuePart = event.venue
+        ? event.venue.replace(/\s+/g, "_")
+        : "NoVenue";
+      const gatheringPart = event.gathering || "0";
+      const filename = `GB-Caterers-${datePart}-${venuePart}-Guests${gatheringPart}.pdf`;
 
-    pdf.save("GB-Caterers-Menu.pdf");
-  } catch (err) {
-    console.error(err);
-    alert("PDF generation failed. See console for error.");
-  } finally {
-    input.style.width = origWidth;
-  }
-};
-
+      pdf.save(filename);
+    } catch (err) {
+      console.error(err);
+      alert("PDF generation failed. See console for error.");
+    } finally {
+      input.style.width = origWidth;
+    }
+  };
 
   return (
     <div style={{ background: "#f8f6ea", minHeight: "100vh", padding: 40 }}>
