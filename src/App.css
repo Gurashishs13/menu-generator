@@ -38,8 +38,26 @@
 }
 
 #menu-preview {
-  line-height: 1.5;          
-  word-wrap: break-word;    
-  white-space: normal;      
-  overflow-wrap: break-word;
+  max-width: 760px;
+  line-height: 1.5;
+  white-space: normal;
+  word-wrap: break-word;
+  padding: 20px;
+  color: #806600;
+  font-family: 'Playfair Display', serif;
+  background-color: #fffcf5;
+  border: 2.5px solid #ccb36c;
+  border-radius: 18px;
+  box-shadow: 0 5px 30px 0 #eadfa5;
 }
+
+#menu-preview ul {
+  list-style-type: none;
+  padding-left: 1rem;
+  margin-top: 0;
+}
+
+#menu-preview li {
+  margin-bottom: 0.3rem;
+}
+

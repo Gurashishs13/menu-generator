@@ -21,21 +21,36 @@ function App() {
   };
 
 const generatePDF = () => {
-  const input = document.getElementById("menu-preview");
-  html2canvas(input, {
-    scale: 3,   // Increase scale for higher resolution
-    useCORS: true,
-    scrollY: -window.scrollY,
-  }).then((canvas) => {
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF("p", "mm", "a4");
-    const pdfWidth = pdf.internal.pageSize.getWidth() - 20; // margin 10mm each side
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+  const input = document.getElementById('menu-preview');
 
-    pdf.addImage(imgData, "PNG", 10, 10, pdfWidth, pdfHeight);
-    pdf.save("GB-Caterers-Menu.pdf");
+  // Save original styles for reset later
+  const originalWidth = input.style.width;
+  const originalFontSize = input.style.fontSize;
+  const originalWordWrap = input.style.wordWrap;
+
+  // Force desktop styling for PDF generation
+  input.style.width = '760px';
+  input.style.fontSize = '16px';
+  input.style.wordWrap = 'break-word';
+
+  // Generate high-res canvas for clear PDF on all devices
+  html2canvas(input, { scale: 3, useCORS: true, scrollY: -window.scrollY }).then(canvas => {
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
+    const pdfWidth = pdf.internal.pageSize.getWidth() - 20; // 10mm margin on each side
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+    pdf.addImage(imgData, 'PNG', 10, 10, pdfWidth, pdfHeight);
+    pdf.save('GB-Caterers-Menu.pdf');
+
+    // Reset styles so page returns back to normal for user
+    input.style.width = originalWidth;
+    input.style.fontSize = originalFontSize;
+    input.style.wordWrap = originalWordWrap;
   });
 };
+
 
   return (
     <div style={{ background: "#f8f6ea", minHeight: "100vh", padding: 40 }}>
