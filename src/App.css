@@ -43,13 +43,14 @@
   white-space: normal;
   word-wrap: break-word;
   padding: 20px;
-  color: #806600;
   font-family: 'Playfair Display', serif;
+  color: #806600;
   background-color: #fffcf5;
   border: 2.5px solid #ccb36c;
   border-radius: 18px;
   box-shadow: 0 5px 30px 0 #eadfa5;
 }
+
 
 #menu-preview ul {
   list-style-type: none;
