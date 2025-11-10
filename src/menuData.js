@@ -149,6 +149,7 @@ const categories = {
     "Navratn Korma",
     "Malai Kofta",
     "Keema Gobi",
+    "Mix Veg",
     "ChanaMasala",
     "Rajma Masala",
     "Tawa Paneer",
