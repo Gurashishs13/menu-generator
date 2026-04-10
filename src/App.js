@@ -2,12 +2,32 @@ import React, { useState } from "react";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import categories from "./menuData";
+import logo from "./logo.png";
+
+/* ---------- FORMAT ITEMS ---------- */
+const formatItems = (items) => {
+  let currentType = "veg";
+  return items
+    .map((item) => {
+      if (item === "NON VEG") {
+        currentType = "non-veg";
+        return null;
+      }
+      return { name: item, type: currentType };
+    })
+    .filter(Boolean);
+};
 
 function App() {
   const [selected, setSelected] = useState({});
-  const [event, setEvent] = useState({ date: "", venue: "", gathering: "" });
+  const [event, setEvent] = useState({
+    date: "",
+    venue: "",
+    gathering: "",
+  });
   const [showBreakfast, setShowBreakfast] = useState(false);
 
+  /* ---------- SELECT ---------- */
   const handleCheckbox = (cat, dish) => {
     setSelected((prev) => {
       const list = prev[cat] || [];
@@ -20,376 +40,289 @@ function App() {
     });
   };
 
+  /* ---------- PDF ---------- */
   const generatePDF = async () => {
     const input = document.getElementById("menu-preview");
 
-    // adjust styles for consistent PDF generation
-    const origWidth = input.style.width;
-    input.style.width = "760px";
+    const canvas = await html2canvas(input, { scale: 3 });
+    const imgData = canvas.toDataURL("image/png");
 
-    try {
-      const canvas = await html2canvas(input, {
-        scale: 3,
-        useCORS: true,
-        scrollY: -window.scrollY,
-      });
-      const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p", "mm", "a4");
+    const width = pdf.internal.pageSize.getWidth() - 20;
+    const imgProps = pdf.getImageProperties(imgData);
+    const height = (imgProps.height * width) / imgProps.width;
 
-      const pdf = new jsPDF("p", "mm", "a4");
-      const pdfWidth = pdf.internal.pageSize.getWidth() - 20;
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-      pdf.addImage(imgData, "PNG", 10, 10, pdfWidth, pdfHeight);
-
-      const datePart = event.date ? event.date.replace(/\s+/g, "_") : "NoDate";
-      const venuePart = event.venue
-        ? event.venue.replace(/\s+/g, "_")
-        : "NoVenue";
-      const gatheringPart = event.gathering || "0";
-      const filename = `GB-Caterers-${datePart}-${venuePart}-Guests${gatheringPart}.pdf`;
-
-      pdf.save(filename);
-    } catch (err) {
-      console.error(err);
-      alert("PDF generation failed. See console for error.");
-    } finally {
-      input.style.width = origWidth;
-    }
+    pdf.addImage(imgData, "PNG", 10, 10, width, height);
+    pdf.save("GB-Caterers-Menu.pdf");
   };
 
   return (
-    <div style={{ background: "#f8f6ea", minHeight: "100vh", padding: 40 }}>
-      <h1
-        style={{
-          color: "#9d7d19",
-          fontSize: 35,
-          fontWeight: "bold",
-          textAlign: "center",
-          marginBottom: 20,
-        }}
-      >
-        GB Caterers Menu Generator
-      </h1>
-      <div style={{ textAlign: "center", marginBottom: 30 }}>
+    <div style={mainContainer}>
+      {/* HEADER */}
+      <h1 style={mainTitle}>GB Caterers</h1>
+      <p style={subtitle}>Premium Catering Experience</p>
+
+      {/* EVENT DETAILS */}
+      <div style={{ textAlign: "center", marginBottom: 25 }}>
         <input
-          placeholder="Event Date"
+          placeholder="Date"
           onChange={(e) => setEvent({ ...event, date: e.target.value })}
-          style={{
-            marginRight: 10,
-            padding: 6,
-            borderRadius: 6,
-            border: "1.5px solid #ccb36c",
-          }}
+          style={inputStyle}
         />
         <input
           placeholder="Venue"
           onChange={(e) => setEvent({ ...event, venue: e.target.value })}
-          style={{
-            marginRight: 10,
-            padding: 6,
-            borderRadius: 6,
-            border: "1.5px solid #ccb36c",
-          }}
+          style={inputStyle}
         />
         <input
-          placeholder="Gathering"
+          placeholder="Guests"
           onChange={(e) => setEvent({ ...event, gathering: e.target.value })}
-          style={{ padding: 6, borderRadius: 6, border: "1.5px solid #ccb36c" }}
+          style={inputStyle}
         />
       </div>
-      <div style={{ textAlign: "center", marginBottom: 24 }}>
-        <label style={{ fontWeight: "bold", fontSize: 18, color: "#aa8f40" }}>
+
+      {/* BREAKFAST */}
+      <div style={{ textAlign: "center", marginBottom: 20 }}>
+        <label style={{ fontWeight: "bold" }}>
           <input
             type="checkbox"
             checked={showBreakfast}
-            onChange={() => setShowBreakfast((b) => !b)}
+            onChange={() => setShowBreakfast(!showBreakfast)}
             style={{ marginRight: 8 }}
           />
-          Include Breakfast Section
+          Include Breakfast
         </label>
       </div>
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: 25,
-          justifyContent: "center",
-          marginBottom: 24,
-        }}
-      >
+
+      {/* BUTTONS */}
+      <div style={{ textAlign: "center", marginBottom: 25 }}>
+        <button style={btnStyle} onClick={generatePDF}>
+          Download PDF 📄
+        </button>
+
+        <button style={btnStyle} onClick={() => window.print()}>
+          Print 🖨️
+        </button>
+
+        <button style={clearBtn} onClick={() => setSelected({})}>
+          Clear ❌
+        </button>
+      </div>
+
+      {/* MENU SELECTION */}
+      <div style={gridStyle}>
         {Object.keys(categories).map((cat) => {
           if (cat === "Breakfast" && !showBreakfast) return null;
+
           return (
-            <div
-              key={cat}
-              style={{
-                backgroundColor: "#fffcf5",
-                borderRadius: 15,
-                boxShadow: "0 5px 30px 0 #eadfa5",
-                border: "2.5px solid #ccb36c",
-                padding: 20,
-                width: 230,
-              }}
-            >
-              <h2
-                style={{
-                  color: "#b7982e",
-                  fontWeight: "bold",
-                  textAlign: "center",
-                  marginBottom: 10,
-                }}
-              >
+            <div key={cat} style={cardStyle}>
+              <h3 style={cardTitle}>
                 {cat === "HotCold" ? "HOT & COLD" : cat.toUpperCase()}
-              </h2>
-              {categories[cat].map((dish) => (
-                <label
-                  key={dish}
-                  style={{
-                    display: "block",
-                    fontWeight: 400,
-                    fontSize: 16,
-                    cursor: "pointer",
-                    marginBottom: 7,
-                  }}
-                >
+              </h3>
+
+              {formatItems(categories[cat]).map((item) => (
+                <label key={item.name} style={itemStyle}>
                   <input
                     type="checkbox"
-                    checked={selected[cat]?.includes(dish) || false}
-                    onChange={() => handleCheckbox(cat, dish)}
-                    style={{
-                      marginRight: 10,
-                      transform: "scale(1.1)",
-                      verticalAlign: "middle",
-                    }}
+                    checked={selected[cat]?.includes(item.name) || false}
+                    onChange={() => handleCheckbox(cat, item.name)}
                   />
-                  {dish}
+                  {item.name} {item.type === "veg" ? "🟢" : "🔴"}
                 </label>
               ))}
             </div>
           );
         })}
       </div>
-      <div style={{ textAlign: "center" }}>
-        <button
-          onClick={generatePDF}
-          style={{
-            backgroundColor: "#b7982e",
-            color: "white",
-            padding: "12px 36px",
-            fontSize: 18,
-            border: "none",
-            borderRadius: 10,
-            cursor: "pointer",
-            fontWeight: "bold",
-            boxShadow: "0 4px 12px rgba(183, 146, 32, 0.7)",
-            userSelect: "none",
-          }}
-          type="button"
-        >
-          Generate PDF
-        </button>
-      </div>
-      <div
-        id="menu-preview"
-        style={{
-          backgroundColor: "#fffcf5",
-          maxWidth: 800,
-          margin: "40px auto",
-          padding: 32,
-          borderRadius: 18,
-          border: "2.5px solid #ccb36c",
-          boxShadow: "0 5px 30px 0 #eadfa5",
-          color: "#806600",
-          fontFamily: "'Playfair Display', serif",
-        }}
-      >
-        <div
-          style={{
-            fontSize: 15,
-            textAlign: "center",
-            marginBottom: 5,
-            color: "#a17B1d",
-          }}
-        >
-          {event.date || ""} &nbsp; &nbsp; | &nbsp; Gathering:{" "}
-          {event.gathering || "0"} &nbsp; | &nbsp; Venue: {event.venue || ""}
+
+      {/* PREVIEW */}
+      <div id="menu-preview" style={previewStyle}>
+        {/* LOGO + HEADER */}
+        <div style={{ textAlign: "center", marginBottom: 15 }}>
+          <div style={logoWrapper}>
+            <img src={logo} alt="logo" style={{ width: 85 }} />
+          </div>
+
+          <h1 style={previewTitle}>GB Caterers</h1>
+          <p style={{ margin: 5 }}>Premium Catering Experience</p>
+          <p style={{ fontSize: 12, color: "#999" }}>
+  Making Every Occasion Special ✨
+</p>
+          <hr style={divider} />
         </div>
-        <h1
-          style={{
-            fontWeight: "bold",
-            fontSize: 43,
-            color: "#b7982e",
-            marginBottom: 20,
-            textAlign: "center",
-            letterSpacing: 1,
-          }}
-        >
-          GB CATERERS
-        </h1>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            fontSize: 16,
-          }}
-        >
-          <div style={{ width: "21%", textAlign: "center" }}>
-            {selected.HotCold?.length > 0 && (
-              <h2
-                style={{
-                  color: "#AD8920",
-                  fontWeight: "bold",
-                  marginBottom: 5,
-                }}
-              >
-                HOT & COLD
-              </h2>
-            )}
-            <ul style={{ listStyle: "none", paddingLeft: 15, marginTop: 0 }}>
-              {selected.HotCold?.map((dish) => (
-                <li key={dish} style={{ marginBottom: 3 }}>
-                  {dish}
-                </li>
+
+        {/* EVENT */}
+        <p style={eventStyle}>
+          {event.date} | {event.venue} <br />
+          👥 Guests: <strong>{event.gathering}</strong>
+        </p>
+
+        {/* EMPTY CHECK */}
+        {Object.keys(selected).length === 0 && (
+          <p style={{ textAlign: "center" }}>No items selected</p>
+        )}
+
+        {/* MENU GRID */}
+        <div style={menuGrid}>
+          {Object.keys(selected).map((cat) => (
+<div key={cat} style={{ marginBottom: 15 }}>
+  <h3 style={catStyle}>
+    {cat === "HotCold" ? "HOT & COLD" : cat.toUpperCase()}
+  </h3>
+
+  <hr style={{ border: "0.5px solid #eee", marginBottom: 6 }} />
+              {selected[cat].map((dish) => (
+                <p
+  key={dish}
+  style={{
+    margin: "4px 0",
+    fontSize: 15,
+    letterSpacing: 0.3,
+  }}
+>
+  • {dish}
+</p>
               ))}
-            </ul>
-            {showBreakfast && selected.Breakfast?.length > 0 && (
-              <>
-                <h2
-                  style={{
-                    color: "#AD8920",
-                    fontWeight: "bold",
-                    marginBottom: 5,
-                    marginTop: 15,
-                  }}
-                >
-                  Breakfast
-                </h2>
-                <ul
-                  style={{ listStyle: "none", paddingLeft: 15, marginTop: 0 }}
-                >
-                  {selected.Breakfast?.map((dish) => (
-                    <li key={dish} style={{ marginBottom: 3 }}>
-                      {dish}
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-          </div>
-          <div style={{ width: "21%", textAlign: "center" }}>
-            {selected.Stalls?.length > 0 && (
-              <h2
-                style={{
-                  color: "#AD8920",
-                  fontWeight: "bold",
-                  marginBottom: 5,
-                }}
-              >
-                STALLS
-              </h2>
-            )}
-            <ul style={{ listStyle: "none", paddingLeft: 15, marginTop: 0 }}>
-              {selected.Stalls?.map((dish) => (
-                <li key={dish} style={{ marginBottom: 3 }}>
-                  {dish}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div style={{ width: "21%", textAlign: "center" }}>
-            {selected.Starters?.length > 0 && (
-              <h2
-                style={{
-                  color: "#AD8920",
-                  fontWeight: "bold",
-                  marginBottom: 5,
-                }}
-              >
-                STARTERS
-              </h2>
-            )}
-            <ul style={{ listStyle: "none", paddingLeft: 15, marginTop: 0 }}>
-              {selected.Starters?.map((dish) => (
-                <li key={dish} style={{ marginBottom: 3 }}>
-                  {dish}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div style={{ width: "21%", textAlign: "center" }}>
-            {selected.MainCourse?.length > 0 && (
-              <h2
-                style={{
-                  color: "#AD8920",
-                  fontWeight: "bold",
-                  marginBottom: 5,
-                }}
-              >
-                MAIN COURSE
-              </h2>
-            )}
-            <ul style={{ listStyle: "none", paddingLeft: 15, marginTop: 0 }}>
-              {selected.MainCourse?.map((dish) => (
-                <li key={dish} style={{ marginBottom: 3 }}>
-                  {dish}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div style={{ width: "15%", textAlign: "center" }}>
-            {selected.Sweets?.length > 0 && (
-              <h2
-                style={{
-                  color: "#AD8920",
-                  fontWeight: "bold",
-                  marginBottom: 5,
-                }}
-              >
-                SWEETS
-              </h2>
-            )}
-            <ul style={{ listStyle: "none", paddingLeft: 15, marginTop: 0 }}>
-              {selected.Sweets?.map((dish) => (
-                <li key={dish} style={{ marginBottom: 3 }}>
-                  {dish}
-                </li>
-              ))}
-            </ul>
-            {selected.Breads?.length > 0 && (
-              <h2
-                style={{
-                  color: "#AD8920",
-                  fontWeight: "bold",
-                  marginBottom: 5,
-                }}
-              >
-                BREADS
-              </h2>
-            )}
-            <ul style={{ listStyle: "none", paddingLeft: 15, marginTop: 0 }}>
-              {selected.Breads?.map((dish) => (
-                <li key={dish} style={{ marginBottom: 3 }}>
-                  {dish}
-                </li>
-              ))}
-            </ul>
-          </div>
+            </div>
+          ))}
         </div>
-        <hr
-          style={{
-            borderTop: "1.5px solid #D2BB7A",
-            marginTop: 25,
-            marginBottom: 10,
-          }}
-        />
-        <div style={{ textAlign: "center", fontSize: 16, color: "#b6a045" }}>
-          Harpreet Singh 'Babloo' +9414500313 <br /> 14 mukher ji nagar,
-          Sriganganagar
+
+        {/* FOOTER */}
+        <hr style={divider} />
+
+        <div style={{ textAlign: "center", marginTop: 10 }}>
+          <b>Harpreet Singh 'Babloo'</b>
+          <p>📞 +91 9414500313</p>
+          <p>📍 14 Mukherji Nagar, Sriganganagar</p>
         </div>
       </div>
     </div>
   );
 }
+
+/* ---------- STYLES ---------- */
+
+const mainContainer = {
+  background: "#f8f6ea",
+  minHeight: "100vh",
+  padding: 30,
+  fontFamily: "serif",
+  color: "#6b4f1d",
+};
+
+const mainTitle = {
+  textAlign: "center",
+  color: "#c9a74d",
+  fontSize: 42,
+  letterSpacing: 2,
+};
+
+const subtitle = {
+  textAlign: "center",
+  marginBottom: 25,
+  color: "#a8893c",
+};
+
+const inputStyle = {
+  margin: 8,
+  padding: 8,
+  borderRadius: 6,
+  border: "1px solid #c9a74d",
+};
+
+const btnStyle = {
+  margin: 8,
+  padding: "10px 22px",
+  borderRadius: 8,
+  border: "none",
+  background: "#c9a74d",
+  color: "white",
+  fontWeight: "bold",
+  cursor: "pointer",
+};
+
+const clearBtn = {
+  margin: 8,
+  padding: "10px 22px",
+  borderRadius: 8,
+  border: "none",
+  background: "#999",
+  color: "white",
+};
+
+const gridStyle = {
+  display: "flex",
+  flexWrap: "wrap",
+  justifyContent: "center",
+  gap: 20,
+};
+
+const cardStyle = {
+  background: "#fff",
+  border: "1px solid #e0c97a",
+  borderRadius: 10,
+  padding: 15,
+  width: 220,
+  boxShadow: "0 5px 20px rgba(0,0,0,0.1)",
+};
+
+const cardTitle = {
+  color: "#c9a74d",
+  textAlign: "center",
+};
+
+const itemStyle = {
+  display: "block",
+  marginBottom: 6,
+};
+
+const previewStyle = {
+  background: "#fffdf7",
+  marginTop: 40,
+  padding: 40,
+  maxWidth: 850,
+  marginLeft: "auto",
+  marginRight: "auto",
+  borderRadius: 12,
+  border: "1px solid #e0c97a",
+  boxShadow: "0 0 0 2px #f0e2b6 inset",
+};
+
+const logoWrapper = {
+  display: "inline-block",
+  padding: 12,
+  background: "#000",
+  borderRadius: "50%",
+  marginBottom: 10,
+};
+
+const previewTitle = {
+  color: "#c9a74d",
+  fontSize: 38,
+  letterSpacing: 3,
+  fontWeight: "bold",
+};
+
+const divider = {
+  border: "1px solid #e0c97a",
+  margin: "10px 0",
+};
+
+const eventStyle = {
+  textAlign: "center",
+  marginBottom: 15,
+};
+
+const menuGrid = {
+  columnCount: 2,
+  columnGap: "40px",
+};
+const catStyle = {
+  color: "#b8962e",
+  marginBottom: 6,
+  fontSize: 16,
+  fontWeight: "bold",
+  letterSpacing: 1,
+};
 
 export default App;
