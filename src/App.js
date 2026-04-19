@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import categories from "./menuData";
-import logo from "./logo.png";
 
 /* ---------- FORMAT ITEMS ---------- */
 const formatItems = (items) => {
@@ -44,9 +43,10 @@ function App() {
 const generatePDF = async () => {
   const input = document.getElementById("menu-preview");
 
-  const canvas = await html2canvas(input, {
-    scale: 2,
-  });
+const canvas = await html2canvas(input, {
+  scale: 2,
+  useCORS: true,   // ✅ IMPORTANT
+});
 
   const imgData = canvas.toDataURL("image/png");
 
@@ -159,21 +159,23 @@ const generatePDF = async () => {
       </div>
 
       {/* PREVIEW */}
-      <div id="menu-preview" style={previewStyle}>
-        {/* LOGO + HEADER */}
-        <div style={{ textAlign: "center", marginBottom: 15 }}>
-          <div style={logoWrapper}>
-            <img src={logo} alt="logo" style={{ width: 85 }} />
-          </div>
+{/* PREVIEW */}
+<div id="menu-preview" style={previewStyle}>
 
-          <h1 style={previewTitle}>GB Caterers</h1>
-          <p style={{ margin: 5 }}>Premium Catering Experience</p>
-          <p style={{ fontSize: 12, color: "#999" }}>
-  Making Every Occasion Special ✨
-</p>
-          <hr style={divider} />
-        </div>
+  {/* HEADER */}
+  <div style={{ textAlign: "center", marginBottom: 10 }}>
+    <h1 style={previewTitle}>GB Caterers</h1>
 
+    <p style={{ margin: 3, fontSize: 13 }}>
+      Premium Catering Experience
+    </p>
+
+    <p style={{ fontSize: 11, color: "#888" }}>
+      Making Every Occasion Special ✨
+    </p>
+
+    <hr style={divider} />
+  </div>
         {/* EVENT */}
         <p style={eventStyle}>
           {event.date} | {event.venue} <br />
@@ -311,13 +313,7 @@ const previewStyle = {
   boxShadow: "0 0 0 2px #f0e2b6 inset",
 };
 
-const logoWrapper = {
-  display: "inline-block",
-  padding: 12,
-  background: "#000",
-  borderRadius: "50%",
-  marginBottom: 10,
-};
+
 
 const previewTitle = {
   color: "#c9a74d",
