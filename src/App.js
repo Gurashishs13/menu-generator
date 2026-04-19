@@ -41,21 +41,44 @@ function App() {
   };
 
   /* ---------- PDF ---------- */
-  const generatePDF = async () => {
-    const input = document.getElementById("menu-preview");
+const generatePDF = async () => {
+  const input = document.getElementById("menu-preview");
 
-    const canvas = await html2canvas(input, { scale: 3 });
-    const imgData = canvas.toDataURL("image/png");
+  const canvas = await html2canvas(input, {
+    scale: 2,
+  });
 
-    const pdf = new jsPDF("p", "mm", "a4");
-    const width = pdf.internal.pageSize.getWidth() - 20;
-    const imgProps = pdf.getImageProperties(imgData);
-    const height = (imgProps.height * width) / imgProps.width;
+  const imgData = canvas.toDataURL("image/png");
 
-    pdf.addImage(imgData, "PNG", 10, 10, width, height);
-    pdf.save("GB-Caterers-Menu.pdf");
-  };
+  const pdf = new jsPDF("p", "mm", "a4");
 
+  const pageWidth = pdf.internal.pageSize.getWidth() - 20;
+  const pageHeight = pdf.internal.pageSize.getHeight() - 20;
+
+  const imgProps = pdf.getImageProperties(imgData);
+
+  let imgWidth = pageWidth;
+  let imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+
+  // 🔥 SCALE DOWN if height exceeds page
+  if (imgHeight > pageHeight) {
+    const scaleFactor = pageHeight / imgHeight;
+    imgHeight = pageHeight;
+    imgWidth = imgWidth * scaleFactor;
+  }
+
+  const x = (pdf.internal.pageSize.getWidth() - imgWidth) / 2;
+
+  pdf.addImage(imgData, "PNG", x, 10, imgWidth, imgHeight);
+
+  // ✅ Dynamic filename
+  const date = event.date || "NoDate";
+  const venue = event.venue || "NoVenue";
+
+  const fileName = `${date}-${venue}.pdf`.replace(/\s+/g, "_");
+
+  pdf.save(fileName);
+};
   return (
     <div style={mainContainer}>
       {/* HEADER */}
